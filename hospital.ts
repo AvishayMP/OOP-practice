@@ -1,9 +1,14 @@
 abstract class Person {
     private firstName: string;
     private lastName: string;
-    constructor(fn: string, ln: string) {
+    private address: string;
+    private age: number;
+
+    constructor(fn: string, ln: string, address: string, age: number) {
         this.firstName = fn;
         this.lastName = ln;
+        this.address = address;
+        this.age = age;
     }
     abstract show(): void;
     getnName(): string {
@@ -13,9 +18,11 @@ abstract class Person {
 
 class Patient extends Person {
     patientID: number;
-
-    constructor(fn: string, ln: string, pID: number) {
-        super(fn, ln);
+    phoneNumber: string;
+    emergancyContact: string;
+    medicalHistory: Appointment[];
+    constructor(fn: string, ln: string, pID: number, address: string, age: number) {
+        super(fn, ln, address, age);
         this.patientID = pID;
     }
     show(): void {
@@ -23,14 +30,27 @@ class Patient extends Person {
             `${this.getnName()},
             patientID: ${this.patientID}`);
     }
+    updHistory(appointment: Appointment): void {
+        this.medicalHistory.push(appointment);
+    }
 }
-
-class Doctor extends Person {
+abstract class MedicalStaff extends Person {
+    staffID: number;
+    position: string;
+    department: string;
+    constructor(fn: string, ln: string, age: number, staffID: number, position: string, department: string) {
+        super(fn, ln, position, age);
+        this.staffID = staffID;
+        this.position = position;
+        this.department = department;
+    }
+}
+class Doctor extends Person {//<--here shuold be continue;
     doctorID: number;
     specialization: string;
 
-    constructor(fn: string, ln: string, dID: number, speciality: string) {
-        super(fn, ln);
+    constructor(fn: string, ln: string, address: string, age: number, dID: number, speciality: string) {
+        super(fn, ln, address, age);
         this.doctorID = dID;
         this.specialization = speciality;
     }
