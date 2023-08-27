@@ -6,6 +6,9 @@ abstract class Person {
         this.lastName = ln;
     }
     abstract show(): void;
+    getnName(): string {
+        return `${this.firstName}, ${this.lastName}`;
+    }
 }
 
 class Patient extends Person {
@@ -17,8 +20,7 @@ class Patient extends Person {
     }
     show(): void {
         console.log(
-            `name: ${this.firstName},
-            last name: ${this.lastName},
+            `${this.getnName()},
             patientID: ${this.patientID}`);
     }
 }
@@ -34,8 +36,7 @@ class Doctor extends Person {
     }
 
     show(): void {
-        console.log(`name: ${this.firstName},
-        last name: ${this.lastName},
+        console.log(`${this.getnName()},
         doctorID: ${this.doctorID},
         speciality: ${this.specialization}`);
     }
