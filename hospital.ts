@@ -149,21 +149,21 @@ class Hospital {
 
 let hospital: Hospital = new Hospital("My Hospital", [], [], []);
 
-let patient1 = new Patient("Yosi", "Boo", 1);
-let patient2 = new Patient("Yonatan", "Goo", 2);
+// let patient1 = new Patient("Yosi", "Boo", 1);
+// let patient2 = new Patient("Yonatan", "Goo", 2);
 
-let doctor1 = new Doctor("Dr. John", "Smith", 1, "Cardiology");
-let doctor2 = new Doctor("Dr. Jane", "Wize", 2, "Neurology");
+// let doctor1 = new Doctor("Dr. John", "Smith", 1, "Cardiology");
+// let doctor2 = new Doctor("Dr. Jane", "Wize", 2, "Neurology");
 
-hospital.addPatient(patient1);
-hospital.addPatient(patient2);
-hospital.addDoctor(doctor1);
-hospital.addDoctor(doctor2);
+// hospital.addPatient(patient1);
+// hospital.addPatient(patient2);
+// hospital.addDoctor(doctor1);
+// hospital.addDoctor(doctor2);
 
-let appointment1 = new Appointment(patient1, doctor1, "2023-08-27", "10:00");
-let appointment2 = new Appointment(patient2, doctor2, "2023-08-27", "11:00");
+// let appointment1 = new Appointment(patient1, doctor1, "2023-08-27", "10:00");
+// let appointment2 = new Appointment(patient2, doctor2, "2023-08-27", "11:00");
 
-hospital.addAppointment(appointment1);
-hospital.addAppointment(appointment2);
+// hospital.addAppointment(appointment1);
+// hospital.addAppointment(appointment2);
 
-hospital.showAppointments();
+// hospital.showAppointments();
