@@ -10,10 +10,23 @@ abstract class Person {
         this.address = address;
         this.age = age;
     }
-    abstract show(): void;
+    show(): void {
+        for (const key in this) {
+            console.log(`${key}: ${this[key]}`);
+        }
+    }
     getnName(): string {
         return `${this.firstName}, ${this.lastName}`;
     }
+    checkAge(min: number, max: number): boolean {
+        return this.age >= min && this.age <= max;
+    }
+}
+
+enum aStatus {
+    PLANED = 'planed',
+    COMPLETE = 'complete',
+    CANCELED = 'canceled'
 }
 
 class Patient extends Person {
@@ -24,16 +37,17 @@ class Patient extends Person {
     constructor(fn: string, ln: string, pID: number, address: string, age: number) {
         super(fn, ln, address, age);
         this.patientID = pID;
+        this.medicalHistory = [];
     }
     show(): void {
-        console.log(
-            `${this.getnName()},
-            patientID: ${this.patientID}`);
+        console.log('person detailes:');
+        super.show();
     }
     updHistory(appointment: Appointment): void {
         this.medicalHistory.push(appointment);
     }
 }
+
 abstract class MedicalStaff extends Person {
     staffID: number;
     position: string;
@@ -45,20 +59,23 @@ abstract class MedicalStaff extends Person {
         this.department = department;
     }
 }
-class Doctor extends Person {//<--here shuold be continue;
-    doctorID: number;
-    specialization: string;
 
-    constructor(fn: string, ln: string, address: string, age: number, dID: number, speciality: string) {
-        super(fn, ln, address, age);
-        this.doctorID = dID;
-        this.specialization = speciality;
+
+class Doctor extends MedicalStaff {
+    availability: string[];
+    minAge: number;
+    maxAge: number;
+
+    constructor(fn: string, ln: string, id: number, age: number, position: string, speciality: string, minAge: number, maxAge: number) {
+        super(fn, ln, age, id, position, speciality);
+        this.availability = ['7:00-12:00', '15:00-20:00'];
+        this.minAge = minAge;
+        this.maxAge = maxAge;
     }
 
     show(): void {
-        console.log(`${this.getnName()},
-        doctorID: ${this.doctorID},
-        speciality: ${this.specialization}`);
+        console.log(`doctor info:`);
+        super.show();
     }
 }
 
@@ -67,12 +84,14 @@ class Appointment {
     doctor: Doctor;
     date: string;
     time: string;
+    private status: aStatus;
 
     constructor(p: Patient, d: Doctor, date: string, time: string) {
         this.patient = p;
         this.doctor = d;
         this.date = date;
         this.time = time;
+        this.status = aStatus.PLANED;
     }
 
     show(): void {
@@ -81,9 +100,34 @@ class Appointment {
         console.log('Doctor:');
         this.doctor.show();
 
-        console.log(`Appointment   detailes:
+        console.log(`Appointment detailes:
         date: ${this.date},
-        time: ${this.time}`);
+        time: ${this.time},
+        status: ${this.status}`);
+    }
+
+    compleate(): void {
+        this.status = aStatus.COMPLETE;
+        this.show();
+    }
+
+    canceled(): void {
+        this.status = aStatus.CANCELED;
+        this.show();
+    }
+}
+
+class MedicalRecord {
+    patient: Patient;
+    doctor: Doctor;
+    diagnosis: string;
+    prescription: string;
+
+    constructor(patient: Patient, doctor: Doctor, diagnosis: string, prescription: string) {
+        this.patient = patient;
+        this.doctor = doctor;
+        this.diagnosis = diagnosis;
+        this.prescription = prescription;
     }
 }
 
@@ -92,27 +136,46 @@ class Hospital {
     private doctors: Doctor[];
     private patients: Patient[];
     private appointments: Appointment[];
+    private medicalRecordes: MedicalRecord[];
 
     constructor(name: string, doctors: Doctor[], patients: Patient[], appointments: Appointment[]) {
         this.hospitalName = name;
         this.doctors = doctors;
         this.patients = patients;
         this.appointments = appointments;
+        this.medicalRecordes = [];
     }
     addPatient(p: Patient): void {
         if (!this.patients.find(pa => Object.is(pa, p)))
             this.patients.push(p);
     }
     addDoctor(d: Doctor): void {
-        if (!this.doctors.find(doc => Object.is(doc, d)))
+        if (!this.doctors.find(doc => doc.staffID == d.staffID)) {
             this.doctors.push(d);
+        }
     }
     addAppointment(a: Appointment): void {
         if (!this.appointments.find(ap =>
-            ap.doctor.doctorID === a.doctor.doctorID &&
-            ap.patient.patientID === a.patient.patientID)) {
-            this.appointments.push(a);
+            ap.doctor.staffID === a.doctor.staffID &&
+            ap.date === a.date && ap.time === a.time)) {
+            if (a.patient.checkAge(a.doctor.minAge, a.doctor.maxAge)) {
+                this.appointments.push(a);
+            } else {
+                console.log("This doctor can't accept this patient because of his age.");
+
+            }
+        } else {
+            console.log("The apointment date and time alredy been scaduled");
         }
+    }
+    createMedicalRecord(mR: MedicalRecord): void {
+        this.medicalRecordes.push(mR);
+    }
+    getMedicalRecord(p: Patient): MedicalRecord[] {
+        return this.medicalRecordes.filter(md => md.patient.patientID === p.patientID);
+    }
+    getDoctorSchedule(d: Doctor): Appointment[] {
+        return this.appointments.filter(ap => ap.doctor.staffID === d.staffID);
     }
 
     showAppointments(): void {
@@ -122,7 +185,7 @@ class Hospital {
     }
     showAppointmentsOfDoctor(dID): void {
         this.appointments.forEach(ap => {
-            if (ap.doctor.doctorID === dID) {
+            if (ap.doctor.staffID === dID) {
                 ap.show();
             }
         })
@@ -135,35 +198,42 @@ class Hospital {
         })
     }
     showAppointmentsToday(): void {
-        let curDate: string = new Date().toString();
+        let curDate: string = new Date().toISOString().split('T')[0];
         this.appointments.forEach(ap => {
             if (ap.date === curDate) {
                 ap.show();
             }
         })
     }
+
     show(): void {
         console.log(this.hospitalName);
     }
 }
 
-let hospital: Hospital = new Hospital("My Hospital", [], [], []);
+function testHospitalSystem() {
+    // Create some instances of classes
+    const doctor1 = new Doctor("John", "Doe", 1, 35, "Cardiology", "Cardiologist", 25, 70);
+    const patient1 = new Patient("Alice", "Smith", 1001, "123 Main St", 30);
+    const appointment1 = new Appointment(patient1, doctor1, "2023-08-28", "10:00");
 
-// let patient1 = new Patient("Yosi", "Boo", 1);
-// let patient2 = new Patient("Yonatan", "Goo", 2);
+    const hospital = new Hospital("Test Hospital", [doctor1], [patient1], [appointment1]);
 
-// let doctor1 = new Doctor("Dr. John", "Smith", 1, "Cardiology");
-// let doctor2 = new Doctor("Dr. Jane", "Wize", 2, "Neurology");
+    // Add more tests here, like adding more doctors, patients, and appointments, and then querying the hospital's data.
 
-// hospital.addPatient(patient1);
-// hospital.addPatient(patient2);
-// hospital.addDoctor(doctor1);
-// hospital.addDoctor(doctor2);
+    // For example:
+    hospital.addDoctor(new Doctor("Jane", "Johnson", 2, 40, "Dermatology", "Dermatologist", 18, 80));
+    hospital.addPatient(new Patient("Bob", "Brown", 1002, "456 Elm St", 45));
 
-// let appointment1 = new Appointment(patient1, doctor1, "2023-08-27", "10:00");
-// let appointment2 = new Appointment(patient2, doctor2, "2023-08-27", "11:00");
+    hospital.addAppointment(new Appointment(patient1, doctor1, "2023-08-29", "15:00"));
 
-// hospital.addAppointment(appointment1);
-// hospital.addAppointment(appointment2);
+    // Display some information
+    hospital.show();
+    hospital.showAppointments();
+    hospital.showAppointmentsOfDoctor(101);
+    hospital.showAppointmentsOfPatient(1001);
+    hospital.showAppointmentsToday();
+}
 
-// hospital.showAppointments();
+// Call the testing function
+testHospitalSystem();
